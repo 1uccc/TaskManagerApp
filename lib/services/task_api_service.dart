@@ -1,59 +1,92 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime_type/mime_type.dart';
+import 'package:taskmanager/models/task.dart';
 
 class TaskAPIService {
   final String _baseUrl = 'http://10.0.2.2:5000/api/tasks';
 
-  // Hàm lấy token từ Firebase
   Future<String?> _getToken() async {
-    User? user = FirebaseAuth.instance.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String? token = await user.getIdToken();
+      final token = await user.getIdToken();
+      print("Token: $token"); // In token ra để kiểm tra
       return token;
     }
     return null;
   }
 
-  // Lấy tất cả công việc
-  Future<List<Map<String, dynamic>>> getAllTasks() async {
-    String? token = await _getToken();
-    print("Token: $token");  // In token để kiểm tra
-
+  Future<List<TaskModel>> getAllTasks() async {
+    final token = await _getToken();
     final response = await http.get(
       Uri.parse(_baseUrl),
       headers: token != null ? {'Authorization': 'Bearer $token'} : {},
     );
 
-    print("Response status: ${response.statusCode}");  // In mã trạng thái của phản hồi
-    print("Response body: ${response.body}");  // In nội dung phản hồi
-
     if (response.statusCode == 200) {
-      List data = json.decode(response.body);
-      return data.cast<Map<String, dynamic>>();
+      final List data = json.decode(response.body);
+      return data.map((task) => TaskModel.fromJson(task)).toList();
     } else {
-      throw Exception('Lỗi khi tải danh sách công việc');
+      throw Exception('Lỗi khi tải công việc: ${response.body}');
     }
   }
 
-  // Lấy công việc theo id
-  Future<Map<String, dynamic>> getTaskById(String id) async {
-    String? token = await _getToken();
-    final response = await http.get(
-      Uri.parse('$_baseUrl/$id'),
-      headers: token != null ? {'Authorization': 'Bearer $token'} : {},
-    );
+  Future<void> createTask(Map<String, dynamic> data, {File? file}) async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Token hết hạn hoặc không hợp lệ');
+    }
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Không tìm thấy công việc');
+    var request = http.MultipartRequest('POST', Uri.parse('$_baseUrl/create'));
+
+    request.headers['Authorization'] = 'Bearer $token';
+
+    // Thêm các trường công việc vào request
+    request.fields.addAll({
+      'title': data['title'],
+      'description': data['description'],
+      'status': data['status'],
+      'priority': data['priority'],
+      'category': data['category'],
+      'assignedTo': data['assignedTo'] ?? '',
+      'completed': data['completed'].toString(),
+      'dueDate': data['dueDate'],
+    });
+
+    // Chỉ thêm tệp khi có tệp đính kèm
+    if (file != null) {
+      final mimeType = mime(file.path) ?? 'application/octet-stream';
+      final fileType = mimeType.split('/');
+      request.files.add(http.MultipartFile(
+        'attachment',
+        file.readAsBytes().asStream(),
+        file.lengthSync(),
+        filename: file.uri.pathSegments.last,
+        contentType: MediaType(fileType[0], fileType[1]),
+      ));
+    }
+
+    try {
+      final response = await request.send();
+
+      if (response.statusCode == 401) {
+        throw Exception('Token hết hạn hoặc không hợp lệ');
+      }
+
+      if (response.statusCode != 201) {
+        final body = await response.stream.bytesToString();
+        throw Exception('Tạo công việc thất bại: $body');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi tạo công việc: $e');
     }
   }
 
-  // Cập nhật công việc
   Future<void> updateTask(String id, Map<String, dynamic> data) async {
-    String? token = await _getToken();
+    final token = await _getToken();
     final response = await http.put(
       Uri.parse('$_baseUrl/$id'),
       headers: {
@@ -64,20 +97,19 @@ class TaskAPIService {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Cập nhật thất bại');
+      throw Exception('Cập nhật thất bại: ${response.body}');
     }
   }
 
-  // Xóa công việc
   Future<void> deleteTask(String id) async {
-    String? token = await _getToken();
+    final token = await _getToken();
     final response = await http.delete(
       Uri.parse('$_baseUrl/$id'),
       headers: token != null ? {'Authorization': 'Bearer $token'} : {},
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Xóa thất bại');
+      throw Exception('Xóa thất bại: ${response.body}');
     }
   }
 }

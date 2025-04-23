@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import 'task_list_screen.dart'; // Đảm bảo import TaskListScreen
+import 'task_list_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -28,24 +28,24 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Trang chủ"),
+        title: Text("Trang chủ"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
             tooltip: "Đăng xuất",
             onPressed: () => _signOut(context),
-          )
+          ),
         ],
       ),
       body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         future: _getUserData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text("Không thể tải thông tin người dùng"));
+            return Center(child: Text("Không thể tải thông tin người dùng"));
           }
 
           final data = snapshot.data!.data()!;
@@ -62,19 +62,25 @@ class HomeScreen extends StatelessWidget {
                     backgroundImage: NetworkImage(avatar),
                     radius: 40,
                   ),
-                const SizedBox(height: 12),
-                Text("Xin chào $username", style: const TextStyle(fontSize: 20)),
-                const SizedBox(height: 6),
-                Text(email, style: const TextStyle(color: Colors.grey)),
-                const SizedBox(height: 20),
+                SizedBox(height: 12),
+                Text(
+                  "Xin chào $username",
+                  style: TextStyle(fontSize: 20),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  email,
+                  style: TextStyle(color: Colors.grey),
+                ),
+                SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const TaskListScreen()),
+                      MaterialPageRoute(builder: (_) => TaskListScreen()),
                     );
                   },
-                  child: const Text("Xem danh sách công việc"),
+                  child: Text("Xem danh sách công việc"),
                 ),
               ],
             ),
