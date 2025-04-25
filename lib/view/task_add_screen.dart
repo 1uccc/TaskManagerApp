@@ -1,14 +1,14 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/task_api_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user.dart';
+import '../services/task_api_service.dart';
+import 'task_form.dart';
 
 class TaskAddScreen extends StatefulWidget {
   @override
-  _TaskAddScreenState createState() => _TaskAddScreenState();
+  State<TaskAddScreen> createState() => _TaskAddScreenState();
 }
 
 class _TaskAddScreenState extends State<TaskAddScreen> {
@@ -43,65 +43,25 @@ class _TaskAddScreenState extends State<TaskAddScreen> {
     });
   }
 
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-
-    if (result != null && result.files.single.path != null) {
-      setState(() {
-        _attachment = File(result.files.single.path!);
-      });
-    }
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(Duration(days: 1)),
-      lastDate: DateTime(2100),
-    );
-
-    if (picked != null) {
-      setState(() {
-        _dueDate = picked;
-      });
-    }
-  }
-
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
-      _formKey.currentState?.save();
-
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Chưa đăng nhập')));
         return;
       }
 
-      // Chuyển priority từ String sang int
-      int priorityValue = 0;
-      switch (_priority) {
-        case 'Thấp':
-          priorityValue = 1;
-          break;
-        case 'Trung Bình':
-          priorityValue = 2;
-          break;
-        case 'Cao':
-          priorityValue = 3;
-          break;
-        default:
-          priorityValue = 0;
-      }
-
-      String priorityString = priorityValue.toString();
-
+      int priorityValue = {
+        'Thấp': 1,
+        'Trung Bình': 2,
+        'Cao': 3,
+      }[_priority] ?? 0;
 
       Map<String, dynamic> taskData = {
         'title': _title,
         'description': _description,
         'status': _status,
-        'priority': priorityString,
+        'priority': priorityValue.toString(),
         'category': _category,
         'completed': _completed,
         'assignedTo': _assignedTo,
@@ -126,81 +86,39 @@ class _TaskAddScreenState extends State<TaskAddScreen> {
       appBar: AppBar(title: Text('Thêm Công Việc')),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Tiêu đề'),
-                validator: (value) => value!.isEmpty ? 'Không được để trống' : null,
-                onSaved: (value) => _title = value!,
-              ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Mô tả'),
-                onSaved: (value) => _description = value ?? '',
-              ),
-              DropdownButtonFormField<String>(
-                value: _status,
-                items: _statusOptions
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                decoration: InputDecoration(labelText: 'Trạng thái'),
-                onChanged: (value) => setState(() => _status = value!),
-              ),
-              DropdownButtonFormField<String>(
-                value: _priority,
-                items: _priorityOptions
-                    .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                    .toList(),
-                decoration: InputDecoration(labelText: 'Độ ưu tiên'),
-                onChanged: (value) => setState(() => _priority = value!),
-              ),
-              DropdownButtonFormField<String>(
-                value: _category,
-                items: _categoryOptions
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                decoration: InputDecoration(labelText: 'Danh mục'),
-                onChanged: (value) => setState(() => _category = value!),
-              ),
-              DropdownButtonFormField<String>(
-                value: _assignedTo.isNotEmpty ? _assignedTo : null,
-                items: _users.map((user) {
-                  return DropdownMenuItem<String>(
-                    value: user.id,
-                    child: Text(user.username),
-                  );
-                }).toList(),
-                onChanged: (value) => setState(() => _assignedTo = value ?? ''),
-                decoration: InputDecoration(labelText: 'Giao cho'),
-              ),
-              ListTile(
-                title: Text(
-                  _dueDate != null
-                      ? 'Hạn chót: ${_dueDate!.toLocal().toString().split(' ')[0]}'
-                      : 'Chọn ngày hết hạn',
-                ),
-                trailing: Icon(Icons.calendar_today),
-                onTap: _pickDate,
-              ),
-              if (_attachment != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Text('Tệp: ${_attachment!.path.split('/').last}'),
-                ),
-              ElevatedButton.icon(
-                onPressed: _pickFile,
-                icon: Icon(Icons.attach_file),
-                label: Text('Chọn tệp đính kèm'),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: Text('Tạo công việc'),
-              ),
-            ],
-          ),
+        child: Column(
+          children: [
+            TaskForm(
+              formKey: _formKey,
+              title: _title,
+              description: _description,
+              status: _status,
+              priority: _priority,
+              category: _category,
+              assignedTo: _assignedTo,
+              completed: _completed,
+              dueDate: _dueDate,
+              attachment: _attachment,
+              users: _users,
+              statusOptions: _statusOptions,
+              priorityOptions: _priorityOptions,
+              categoryOptions: _categoryOptions,
+              onTitleChanged: (val) => _title = val,
+              onDescriptionChanged: (val) => _description = val,
+              onStatusChanged: (val) => _status = val,
+              onPriorityChanged: (val) => _priority = val,
+              onCategoryChanged: (val) => _category = val,
+              onAssignedToChanged: (val) => _assignedTo = val,
+              onCompletedChanged: (val) => _completed = val,
+              onDueDateChanged: (val) => _dueDate = val,
+              onAttachmentPicked: (file) => setState(() => _attachment = file),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitForm,
+              child: Text('Tạo công việc'),
+            ),
+          ],
         ),
       ),
     );

@@ -13,7 +13,7 @@ class TaskAPIService {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final token = await user.getIdToken();
-      print("Token: $token"); // In token ra để kiểm tra
+      print("Token: $token");
       return token;
     }
     return null;
@@ -41,7 +41,6 @@ class TaskAPIService {
     }
 
     var request = http.MultipartRequest('POST', Uri.parse('$_baseUrl/create'));
-
     request.headers['Authorization'] = 'Bearer $token';
 
     // Thêm các trường công việc vào request
@@ -85,19 +84,50 @@ class TaskAPIService {
     }
   }
 
-  Future<void> updateTask(String id, Map<String, dynamic> data) async {
+  Future<void> updateTask(String id, Map<String, dynamic> data, {File? file}) async {
     final token = await _getToken();
-    final response = await http.put(
-      Uri.parse('$_baseUrl/$id'),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-      body: json.encode(data),
-    );
+    var request = http.MultipartRequest('PUT', Uri.parse('$_baseUrl/$id'));
 
-    if (response.statusCode != 200) {
-      throw Exception('Cập nhật thất bại: ${response.body}');
+    request.headers['Authorization'] = 'Bearer $token';
+
+    // Thêm các trường công việc vào request
+    request.fields.addAll({
+      'title': data['title'],
+      'description': data['description'],
+      'status': data['status'],
+      'priority': data['priority'],
+      'category': data['category'],
+      'assignedTo': data['assignedTo'] ?? '',
+      'completed': data['completed'].toString(),
+      'dueDate': data['dueDate'],
+    });
+
+    // Chỉ thêm tệp khi có tệp đính kèm
+    if (file != null) {
+      final mimeType = mime(file.path) ?? 'application/octet-stream';
+      final fileType = mimeType.split('/');
+      request.files.add(http.MultipartFile(
+        'attachment',
+        file.readAsBytes().asStream(),
+        file.lengthSync(),
+        filename: file.uri.pathSegments.last,
+        contentType: MediaType(fileType[0], fileType[1]),
+      ));
+    }
+
+    try {
+      final response = await request.send();
+
+      if (response.statusCode == 401) {
+        throw Exception('Token hết hạn hoặc không hợp lệ');
+      }
+
+      if (response.statusCode != 200) {
+        final body = await response.stream.bytesToString();
+        throw Exception('Cập nhật công việc thất bại: $body');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi cập nhật công việc: $e');
     }
   }
 
@@ -112,4 +142,34 @@ class TaskAPIService {
       throw Exception('Xóa thất bại: ${response.body}');
     }
   }
+
+  Future<bool> updateTaskStatus(String taskId, String newStatus) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/$taskId');
+    print('PATCH URL: $url');
+
+    // Chỉ gửi trường status trong body
+    final body = jsonEncode({
+      'status': newStatus,  // Chỉ gửi trường status
+    });
+
+    final response = await http.patch(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
+
+    print('Status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode != 200) {
+      throw Exception('Cập nhật trạng thái thất bại: ${response.body}');
+    }
+
+    return response.statusCode == 200;
+  }
+
 }

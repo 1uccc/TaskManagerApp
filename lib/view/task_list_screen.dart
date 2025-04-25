@@ -114,7 +114,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   ? Colors.green
                   : status == 'in progress'
                   ? Colors.orange
-                  : Colors.grey;
+                  : status == 'to do'
+                  ? Colors.cyan
+                  : Colors.red;
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -138,7 +140,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                               flagColor = Colors.orange;
                               break;
                             case 1:
-                              flagColor = Colors.blueGrey;
+                              flagColor = Colors.yellow.shade300;
                               break;
                             default:
                               flagColor = Colors.grey;

@@ -60,7 +60,38 @@ class TaskModel {
       rethrow;
     }
   }
-
+// Phương thức copyWith để sao chép đối tượng và thay đổi các trường cần thiết
+  TaskModel copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? status,
+    int? priority,
+    DateTime? dueDate,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? assignedTo,
+    String? createdBy,
+    String? category,
+    List<String>? attachments,
+    bool? completed,
+  }) {
+    return TaskModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      dueDate: dueDate ?? this.dueDate,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      assignedTo: assignedTo ?? this.assignedTo,
+      createdBy: createdBy ?? this.createdBy,
+      category: category ?? this.category,
+      attachments: attachments ?? this.attachments,
+      completed: completed ?? this.completed,
+    );
+  }
   // Hàm để xử lý Timestamp
   static DateTime _parseTimestamp(dynamic timestamp) {
     if (timestamp is Map<String, dynamic>) {

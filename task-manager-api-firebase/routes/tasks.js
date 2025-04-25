@@ -132,10 +132,6 @@ router.put('/:id', authenticate, upload.single('attachment'), async (req, res) =
 
     const taskData = taskDoc.data();
 
-    // Chỉ người tạo được phép sửa
-    if (taskData.createdBy !== uid) {
-      return res.status(403).json({ message: 'Bạn không có quyền sửa công việc này' });
-    }
 
     // Kiểm tra user được giao nếu có
     if (assignedTo) {
@@ -191,6 +187,30 @@ router.put('/:id', authenticate, upload.single('attachment'), async (req, res) =
   } catch (error) {
     console.error('Lỗi khi cập nhật công việc:', error);
     res.status(500).json({ message: 'Lỗi khi cập nhật công việc', error: error.message });
+  }
+});
+
+// Cập nhật trạng thái task
+router.patch('/:id/status', authenticate, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const taskDoc = await taskCollection.doc(id).get();
+
+    if (!taskDoc.exists) {
+      return res.status(404).json({ message: 'Công việc không tồn tại' });
+    }
+
+    const taskData = taskDoc.data();
+
+
+    await taskCollection.doc(id).update({ status });
+
+    res.status(200).json({ message: 'Cập nhật trạng thái công việc thành công' });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật trạng thái công việc:', error);
+    res.status(500).json({ message: 'Lỗi khi cập nhật trạng thái', error: error.message });
   }
 });
 
