@@ -145,12 +145,12 @@ class TaskAPIService {
 
   Future<bool> updateTaskStatus(String taskId, String newStatus) async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/$taskId');
-    print('PATCH URL: $url');
+    final url = Uri.parse('$_baseUrl/$taskId/status');
+    //final url = Uri.parse('http://10.0.2.2:5000/api/tasks/$taskId/status'); _baseUrl hay bị lỗi nhận diện
 
     // Chỉ gửi trường status trong body
     final body = jsonEncode({
-      'status': newStatus,  // Chỉ gửi trường status
+      'status': newStatus,
     });
 
     final response = await http.patch(
@@ -162,14 +162,10 @@ class TaskAPIService {
       body: body,
     );
 
-    print('Status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
     if (response.statusCode != 200) {
       throw Exception('Cập nhật trạng thái thất bại: ${response.body}');
     }
 
     return response.statusCode == 200;
   }
-
 }

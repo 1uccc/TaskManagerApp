@@ -15,6 +15,7 @@ class TaskEditScreen extends StatefulWidget {
   State<TaskEditScreen> createState() => _TaskEditScreenState();
 }
 
+
 class _TaskEditScreenState extends State<TaskEditScreen> {
   final _formKey = GlobalKey<FormState>();
 
@@ -50,6 +51,7 @@ class _TaskEditScreenState extends State<TaskEditScreen> {
 
     _fetchUsers();
   }
+
 
   String _mapPriorityValueToText(String value) {
     switch (value) {

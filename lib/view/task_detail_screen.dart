@@ -131,6 +131,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             _buildDetailRow('Trạng thái', task.status),
             _buildDetailRow('Độ ưu tiên', _mapPriority(task.priority.toString())),
             _buildDetailRow('Danh mục', task.category),
+            _buildDetailRow('Ngày tạo', _formatDate(task.createdAt)),
+            _buildDetailRow('Ngày cập nhật', _formatDate(task.updatedAt)),
             _buildDetailRow('Đã hoàn thành', task.completed ? 'Rồi' : 'Chưa'),
             _buildDetailRow(
               'Người giao',
