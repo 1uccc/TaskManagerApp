@@ -75,13 +75,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$label: ',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-          Expanded(child: Text(value, style: TextStyle(color: Colors.black87))),
+          Text(label,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                  fontSize: 12)),
+          SizedBox(height: 4),
+          Text(value, style: TextStyle(fontSize: 16)),
         ],
       ),
     );
@@ -101,13 +105,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final task = widget.task;
-
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text('Chi tiết công việc'),
         actions: [
           IconButton(
@@ -121,93 +125,117 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            _buildDetailRow('Tiêu đề', task.title),
-            _buildDetailRow('Mô tả', task.description),
-            _buildDetailRow('Hạn chót', _formatDate(task.dueDate)),
-            _buildDetailRow('Trạng thái', task.status),
-            _buildDetailRow('Độ ưu tiên', _mapPriority(task.priority.toString())),
-            _buildDetailRow('Danh mục', task.category),
-            _buildDetailRow('Ngày tạo', _formatDate(task.createdAt)),
-            _buildDetailRow('Ngày cập nhật', _formatDate(task.updatedAt)),
-            _buildDetailRow('Đã hoàn thành', task.completed ? 'Rồi' : 'Chưa'),
-            _buildDetailRow(
-              'Người giao',
-              _createdByUser != null
-                  ? '${_createdByUser!.username} (${_createdByUser!.email})'
-                  : 'Không rõ',
-            ),
-            _buildDetailRow(
-              'Người được giao',
-              _assignedUser != null
-                  ? '${_assignedUser!.username} (${_assignedUser!.email})'
-                  : 'Không có',
-            ),
-            if (task.attachments.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Tệp đính kèm:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    SizedBox(height: 6),
-                    ...task.attachments.map(
-                          (url) => Row(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xff66fb9a), Color(0xff002d88)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Text(
-                              url,
+                          Text('Cập nhật trạng thái:',
                               style: TextStyle(
-                                color: Colors.blue,
-                                decoration: TextDecoration.underline,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.copy),
-                            onPressed: () {
-                              Clipboard.setData(ClipboardData(text: url));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Đã sao chép liên kết')),
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade600,
+                                  fontSize: 14)),
+                          DropdownButton<String>(
+                            value: task.status,
+                            items: _statusOptions.map((status) {
+                              return DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(status),
                               );
+                            }).toList(),
+                            onChanged: (newStatus) {
+                              if (newStatus != null && newStatus != task.status) {
+                                _updateStatus(newStatus);
+                              }
                             },
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      _buildDetailRow('Tiêu đề', task.title),
+                      Divider(),
+                      _buildDetailRow('Mô tả', task.description),
+                      Divider(),
+                      _buildDetailRow('Hạn chót', _formatDate(task.dueDate)),
+                      Divider(),
+                      _buildDetailRow('Độ ưu tiên', _mapPriority(task.priority.toString())),
+                      Divider(),
+                      _buildDetailRow('Danh mục', task.category),
+                      Divider(),
+                      _buildDetailRow('Ngày tạo', _formatDate(task.createdAt)),
+                      Divider(),
+                      _buildDetailRow('Ngày cập nhật', _formatDate(task.updatedAt)),
+                      Divider(),
+                      _buildDetailRow(
+                        'Người giao',
+                        _createdByUser != null
+                            ? '${_createdByUser!.username} (${_createdByUser!.email})'
+                            : 'Không rõ',
+                      ),
+                      Divider(),
+                      _buildDetailRow(
+                        'Người được giao',
+                        _assignedUser != null
+                            ? '${_assignedUser!.username} (${_assignedUser!.email})'
+                            : 'Không có',
+                      ),
+                      if (task.attachments.isNotEmpty) ...[
+                        Divider(),
+                        Text('Tệp đính kèm:',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade600,
+                                fontSize: 12)),
+                        SizedBox(height: 8),
+                        ...task.attachments.map(
+                              (url) => Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  url,
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.copy),
+                                onPressed: () {
+                                  Clipboard.setData(ClipboardData(text: url));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Đã sao chép liên kết')),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Cập nhật trạng thái:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  DropdownButton<String>(
-                    value: task.status,
-                    items: _statusOptions.map((status) {
-                      return DropdownMenuItem<String>(
-                        value: status,
-                        child: Text(status),
-                      );
-                    }).toList(),
-                    onChanged: (newStatus) {
-                      if (newStatus != null && newStatus != task.status) {
-                        _updateStatus(newStatus);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

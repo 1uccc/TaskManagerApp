@@ -20,8 +20,8 @@ class _LoginScreenState extends State<LoginScreen>
   final PageController _pageController = PageController(initialPage: 0);
   Color left = Colors.black;
   Color right = Colors.white;
-  final Color loginGradientStart = const Color(0xff66fb9a);
-  final Color loginGradientEnd = const Color(0xff002d88);
+  final Color GradientStart = const Color(0xff66fb9a);
+  final Color GradientEnd = const Color(0xff002d88);
   final UserService _userService = UserService();
 
   Future<void> _login() async {
@@ -245,18 +245,18 @@ class _LoginScreenState extends State<LoginScreen>
                   borderRadius: const BorderRadius.all(Radius.circular(5.0)),
                   boxShadow: <BoxShadow>[
                     BoxShadow(
-                      color: loginGradientStart,
+                      color: GradientStart,
                       offset: const Offset(1.0, 6.0),
                       blurRadius: 20.0,
                     ),
                     BoxShadow(
-                      color: loginGradientEnd,
+                      color: GradientEnd,
                       offset: const Offset(1.0, 6.0),
                       blurRadius: 20.0,
                     ),
                   ],
                   gradient: LinearGradient(
-                    colors: [loginGradientEnd, loginGradientStart],
+                    colors: [GradientEnd, GradientStart],
                     begin: const FractionalOffset(0.2, 0.2),
                     end: const FractionalOffset(1.0, 1.0),
                     stops: const [0.0, 1.0],
@@ -265,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 child: MaterialButton(
                   highlightColor: Colors.transparent,
-                  splashColor: loginGradientEnd,
+                  splashColor: GradientEnd,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 10.0,
@@ -331,7 +331,7 @@ class _LoginScreenState extends State<LoginScreen>
       body: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [loginGradientStart, loginGradientEnd],
+            colors: [GradientStart, GradientEnd],
             begin: const FractionalOffset(0.0, 0.0),
             end: const FractionalOffset(1.0, 1.0),
             stops: const [0.0, 1.0],

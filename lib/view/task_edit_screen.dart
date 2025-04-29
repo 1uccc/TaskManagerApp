@@ -15,7 +15,6 @@ class TaskEditScreen extends StatefulWidget {
   State<TaskEditScreen> createState() => _TaskEditScreenState();
 }
 
-
 class _TaskEditScreenState extends State<TaskEditScreen> {
   final _formKey = GlobalKey<FormState>();
 
@@ -51,7 +50,6 @@ class _TaskEditScreenState extends State<TaskEditScreen> {
 
     _fetchUsers();
   }
-
 
   String _mapPriorityValueToText(String value) {
     switch (value) {
@@ -114,41 +112,74 @@ class _TaskEditScreenState extends State<TaskEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Chỉnh sửa công việc')),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TaskForm(
-              formKey: _formKey,
-              title: _title,
-              description: _description,
-              status: _status,
-              priority: _priority,
-              category: _category,
-              assignedTo: _assignedTo,
-              completed: _completed,
-              dueDate: _dueDate,
-              attachment: _attachment,
-              users: _users,
-              statusOptions: _statusOptions,
-              priorityOptions: _priorityOptions,
-              categoryOptions: _categoryOptions,
-              onTitleChanged: (val) => _title = val,
-              onDescriptionChanged: (val) => _description = val,
-              onStatusChanged: (val) => _status = val,
-              onPriorityChanged: (val) => _priority = val,
-              onCategoryChanged: (val) => _category = val,
-              onAssignedToChanged: (val) => _assignedTo = val,
-              onCompletedChanged: (val) => _completed = val,
-              onDueDateChanged: (val) => _dueDate = val,
-              onAttachmentPicked: (file) => setState(() => _attachment = file),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xff66fb9a), Color(0xff002d88)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SizedBox.expand(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 20),
+                            TaskForm(
+                              formKey: _formKey,
+                              title: _title,
+                              description: _description,
+                              status: _status,
+                              priority: _priority,
+                              category: _category,
+                              assignedTo: _assignedTo,
+                              completed: _completed,
+                              dueDate: _dueDate,
+                              attachment: _attachment,
+                              users: _users,
+                              statusOptions: _statusOptions,
+                              priorityOptions: _priorityOptions,
+                              categoryOptions: _categoryOptions,
+                              onTitleChanged: (val) => _title = val,
+                              onDescriptionChanged: (val) => _description = val,
+                              onStatusChanged: (val) => _status = val,
+                              onPriorityChanged: (val) => _priority = val,
+                              onCategoryChanged: (val) => _category = val,
+                              onAssignedToChanged: (val) => _assignedTo = val,
+                              onCompletedChanged: (val) => _completed = val,
+                              onDueDateChanged: (val) => _dueDate = val,
+                              onAttachmentPicked: (file) => setState(() => _attachment = file),
+                            ),
+                            const SizedBox(height: 40),
+                            SizedBox(
+                              height: 60,
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _submitForm,
+                                child: const Text('Cập nhật'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _submitForm,
-              child: Text('Cập nhật'),
-            ),
-          ],
+          ),
         ),
       ),
     );

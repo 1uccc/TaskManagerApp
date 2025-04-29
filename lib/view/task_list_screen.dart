@@ -21,6 +21,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   String _selectedCategory = '';
   String _selectedStatus = '';
 
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +65,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text("Danh sách Công việc"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadTasks),
@@ -129,76 +132,86 @@ class _TaskListScreenState extends State<TaskListScreen> {
           ),
         ),
       ),
-      body: FutureBuilder<List<TaskModel>>(
-        future: _tasks,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xff66fb9a), Color(0xff002d88)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: FutureBuilder<List<TaskModel>>(
+          future: _tasks,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Lỗi khi tải dữ liệu:\n${snapshot.error}',
-                style: const TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-            );
-          }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Lỗi khi tải dữ liệu:\n${snapshot.error}',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }
 
-          final tasks = snapshot.data!
-              .where((task) => task.title.toLowerCase().contains(_searchKeyword) &&
-              (_selectedStatus.isEmpty || task.status == _selectedStatus) &&
-              (_selectedCategory.isEmpty || task.category == _selectedCategory))
-              .toList();
+            final tasks = snapshot.data!
+                .where((task) => task.title.toLowerCase().contains(_searchKeyword) &&
+                (_selectedStatus.isEmpty || task.status == _selectedStatus) &&
+                (_selectedCategory.isEmpty || task.category == _selectedCategory))
+                .toList();
 
-          tasks.sort((a, b) => (b.priority ?? 0).compareTo(a.priority ?? 0));
+            tasks.sort((a, b) => (b.priority ?? 0).compareTo(a.priority ?? 0));
 
-          if (tasks.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.inbox, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('Không có công việc nào', style: TextStyle(fontSize: 18, color: Colors.grey)),
-                ],
-              ),
-            );
-          }
-
-          if (_isListView) {
-            return ListView.builder(
-              itemCount: tasks.length,
-              itemBuilder: (context, index) {
-                final task = tasks[index];
-                return TaskListItem(
-                  task: task,
-                  onDelete: _deleteTask,
-                  onRefresh: _loadTasks,
-                );
-              },
-            );
-          } else {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            if (tasks.isEmpty) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildKanbanColumnWidget('To do', tasks),
-                    _buildKanbanColumnWidget('In progress', tasks),
-                    _buildKanbanColumnWidget('Done', tasks),
-                    _buildKanbanColumnWidget('Cancelled', tasks),
+                    Icon(Icons.inbox, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text('Không có công việc nào', style: TextStyle(fontSize: 18, color: Colors.grey)),
                   ],
                 ),
-              ),
-            );
-          }
-        },
+              );
+            }
+
+            if (_isListView) {
+              return ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  return TaskListItem(
+                    task: task,
+                    onDelete: _deleteTask,
+                    onRefresh: _loadTasks,
+                  );
+                },
+              );
+            } else {
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildKanbanColumnWidget('To do', tasks),
+                      _buildKanbanColumnWidget('In progress', tasks),
+                      _buildKanbanColumnWidget('Done', tasks),
+                      _buildKanbanColumnWidget('Cancelled', tasks),
+                    ],
+                  ),
+                ),
+              );
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.teal[300],
         onPressed: () async {
           final result = await Navigator.push(
             context,
@@ -208,7 +221,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
             _loadTasks();
           }
         },
-        child: const Icon(Icons.add),
+        child:
+        const Icon(color: Colors.black ,Icons.add),
       ),
     );
   }
